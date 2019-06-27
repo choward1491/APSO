@@ -55,19 +55,20 @@ int main(int argc, const char * argv[]) {
     std::vector<double> lb{-1, -1}, ub{1, 1};
     
     // setup the swarm
+    int max_iter = 200000;
     int num_particles = 200;
     async::pso::swarm<quadratic> swarm_(num_particles / tot_ranks);
     swarm_.set_bounds(lb, ub);
     swarm_.set_mpi_comm(MPI_COMM_WORLD);
     swarm_.set_tag(5);
-    swarm_.set_msg_check_frequency(1);
+    swarm_.set_msg_check_frequency(max_iter);
     swarm_.set_print_flag(false);
     swarm_.initialize();
     
     double t1 = MPI_Wtime();
     
     // do particle swarm iterations //2000000
-    for(int i = 0; i < 200000; ++i){
+    for(int i = 0; i < max_iter; ++i){
         swarm_.iterate();
     }
     
@@ -84,7 +85,6 @@ int main(int argc, const char * argv[]) {
     printf("]\n");
     
     // run davids thing
-    int max_iter = 200000;
     int num_dim = 2;
     auto cost_func_ptr = new x_sq();
     std::vector<double> lower_bnds = {-1, -1};

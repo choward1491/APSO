@@ -25,8 +25,8 @@ class particle
       //update velocity using v(t+1) = ....
       void update_velocity(const std::vector<double> &swarm_best, const int proc_id);
       
-      std::vector<double> get_position();
-      std::vector<double> get_best_position();
+      std::vector<double> &get_position();
+      std::vector<double> &get_best_position();
 
 
    private:

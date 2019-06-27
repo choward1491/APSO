@@ -9,22 +9,16 @@
 
 swarm::swarm(const int input_num_particles, const int input_num_dim, int input_max_iter, 
    cost_func_base *input_ptr, const bounds &input_bnds, const int input_num_proc, const int in_proc_id)
+   : max_iter{input_max_iter}, num_particles{input_num_particles}, p_cost_func{input_ptr}, 
+   num_dim{input_num_dim}, num_proc{input_num_proc}, proc_id{in_proc_id}, bnds{input_bnds}
 {
-   max_iter = input_max_iter;
-   num_particles = input_num_particles;
    particle_instance.resize(input_num_particles, particle(input_num_dim));
    best_soln.resize(input_num_dim,0.0);
-   // best_soln = input_best_soln;
-   ptr_2_cost_func = input_ptr;       //do we need to destroy this?
-   bnds = input_bnds;
-   num_dim = input_num_dim;
-   num_proc = input_num_proc;
-   proc_id = in_proc_id;
 }
 
 void swarm::init_swarm()
 {
-   std::mt19937 generator(proc_id);
+   std::minstd_rand0 generator(proc_id);
    std::vector<std::uniform_real_distribution<double> > distribution_pos;
    std::uniform_real_distribution<double> distribution_vel(0.0,bnds.upper_bnds[0]*0.001);  
    std::vector<double> rand_pos(best_soln.size(),0.0);
@@ -54,7 +48,7 @@ void swarm::init_swarm()
 
       //check if particle's current position gives a smaller objective than 
       //the swarm's current best position
-      if(cost_function(rand_pos,ptr_2_cost_func) < cost_function(best_soln,ptr_2_cost_func)) 
+      if(cost_function(rand_pos, p_cost_func) < cost_function(best_soln, p_cost_func)) 
       {
          set_best_soln(rand_pos);
       }
@@ -66,9 +60,6 @@ void swarm::init_swarm()
       });          
       it->set_velocity(rand_vel);
    }
-
-   // std::cout << proc_id << " | " << best_soln[0] << std::endl;
-
 
    find_and_exchange_global_best_soln();
 
@@ -85,32 +76,22 @@ void swarm::set_best_soln(const std::vector<double> &input_best)
 
 void swarm::update_swarm()
 {
-   std::vector<double> part_pos; //var for storing particle position
-
    for(auto it = particle_instance.begin(); it != particle_instance.end(); it++)
    {
       it->update_velocity(best_soln, proc_id);
       it->update_position();
-      part_pos = it->get_position();
 
-      // std::cout << proc_id << " | part positoin: " << std::setprecision(16) << part_pos[0] << std::endl;
-
-      if(cost_function(part_pos, ptr_2_cost_func) < cost_function(it->get_best_position(), ptr_2_cost_func))
+      if(cost_function(it->get_position(), p_cost_func) < cost_function(it->get_best_position(), p_cost_func))
       {
-         it->set_best_position(part_pos);
+         it->set_best_position(it->get_position());
 
          //this part is the part that needs to be parallelized
-         if(cost_function(part_pos, ptr_2_cost_func) < cost_function(best_soln, ptr_2_cost_func))
+         if(cost_function(it->get_position(), p_cost_func) < cost_function(best_soln, p_cost_func))
          {
-            best_soln = part_pos;
+            best_soln = it->get_position();
          }
       }
    }
-
-
-
-   // std::cout << proc_id << " |  " << std::setprecision(16) << best_soln[0] << std::endl;
-
 
    find_and_exchange_global_best_soln();
 }
@@ -121,7 +102,6 @@ void swarm::iterate()
 
    //iterate until max_iter is reached or until some other convergence criteria is reached;
    //latter is not yet implemented
-
    while(iter < max_iter)
    {
       if(verbose && proc_id == 0)
@@ -207,7 +187,7 @@ void swarm::find_and_exchange_global_best_soln()
          // std::cout << "proc 1: " << local_best_soln[0] << std::endl;
          // std::cout << "proc 0: " << best_soln[0] << std::endl;
 
-         if(cost_function(local_best_soln, ptr_2_cost_func) < cost_function(best_soln, ptr_2_cost_func))
+         if(cost_function(local_best_soln, p_cost_func) < cost_function(best_soln, p_cost_func))
          {
             best_soln = local_best_soln;
          }         

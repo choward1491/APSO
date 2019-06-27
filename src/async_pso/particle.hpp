@@ -28,7 +28,7 @@ namespace async {
             void set_particle_weights(double phi_local, double phi_global);
             
             // initialize
-            void initialize(std::mt19937& gen,
+            void initialize(std::minstd_rand0& gen,
                             const std::vector<double>& lb,
                             const std::vector<double>& ub);
             
@@ -52,7 +52,7 @@ namespace async {
             std::vector<double> v;
             const std::vector<double> *lb;
             const std::vector<double> *ub;
-            std::mt19937* gen;
+            std::minstd_rand0* gen;
             
             double best_val;
             std::vector<double> best_p;

@@ -77,9 +77,9 @@ class swarm
 
       //Wraps the above 4 functions
       void find_and_exchange_global_best_soln();
+;
+      std::vector<double> best_soln;
     
-    std::vector<double> best_soln;
-
    private:
       int num_particles;
       int max_iter;
@@ -87,7 +87,7 @@ class swarm
       int num_proc; //# of procesors
       int proc_id;  //process id
       std::vector<particle> particle_instance;
-      cost_func_base *ptr_2_cost_func;
+      cost_func_base *p_cost_func;
       bounds bnds;
 };
 

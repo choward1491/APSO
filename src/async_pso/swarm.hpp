@@ -77,7 +77,7 @@ namespace async {
             global_comm gcom;
             
             // random number generator
-            std::mt19937 gen;
+            std::minstd_rand0 gen;
             
             // MPI stuff
             int local_rank;

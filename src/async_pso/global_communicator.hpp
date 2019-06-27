@@ -35,7 +35,7 @@ namespace async {
             void set_mpi_comm(MPI_Comm comm);
             
             // set random generator
-            void set_prng(std::mt19937& gen);
+            void set_prng(std::minstd_rand0& gen);
             
             // try to update the global best estimate
             // by passing in some function value and the
@@ -68,7 +68,7 @@ namespace async {
             std::vector<int> perm_samples;
             
             // random sampler
-            std::mt19937* eng;
+            std::minstd_rand0* eng;
             
             // message types
             enum msg_type: int {

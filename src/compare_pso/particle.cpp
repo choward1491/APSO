@@ -20,7 +20,7 @@ void particle::set_best_position(const std::vector<double> &input_position)
 
 void particle::update_position()
 {
-   std::transform(position.begin(),position.end(),velocity.begin(),position.begin(),
+   std::transform(position.begin(), position.end(), velocity.begin(), position.begin(),
       std::plus<double>());
 }
 
@@ -28,7 +28,7 @@ void particle::update_velocity(const std::vector<double> &swarm_best, const int 
 {
    double c1 = 2; //make c1&x2 user-defined parametrs later
    double c2 = 3;
-   static std::mt19937 generator(proc_id); 
+   static std::minstd_rand0 generator(proc_id); 
    static std::uniform_real_distribution<double> distribution(0.0,1.0);
 
    size_t num_dim = position.size();
@@ -39,12 +39,12 @@ void particle::update_velocity(const std::vector<double> &swarm_best, const int 
    }
 }
 
-std::vector<double> particle::get_best_position()
+std::vector<double> &particle::get_best_position()
 {
    return best_position;
 }
 
-std::vector<double> particle::get_position()
+std::vector<double> &particle::get_position()
 {
    return position;
 }

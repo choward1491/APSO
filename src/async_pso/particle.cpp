@@ -33,7 +33,7 @@ namespace async {
         }
         
         // initialize
-        void particle::initialize(std::mt19937& gen_,
+        void particle::initialize(std::minstd_rand0& gen_,
                         const std::vector<double>& lb_,
                         const std::vector<double>& ub_)
         {
