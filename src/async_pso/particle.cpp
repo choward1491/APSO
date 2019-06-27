@@ -45,11 +45,11 @@ namespace async {
             
             // loop and initialize the positions and velocities
             for(size_t i = 0; i < p.size(); ++i){
-                double s = U(gen_), t = U(gen_);
-                double del = std::abs(lb_[i] - ub_[i]);
-                p[i] = lb_[i]*s + ub_[i]*(1-s);
-                best_p[i] = p[i];
-                v[i] = -del*t + del*(1-t);
+                double s    = U(gen_), t = U(gen_);
+                double del  = std::abs(lb_[i] - ub_[i]);
+                p[i]        = lb_[i]*s + ub_[i]*(1-s);
+                best_p[i]   = p[i];
+                v[i]        = -del*t + del*(1-t);
             }
             
         }
