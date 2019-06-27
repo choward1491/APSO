@@ -24,6 +24,10 @@ int main(int argc, const char * argv[]) {
     // initialize the MPI stuff
     MPI_Init(nullptr, nullptr);
     
+    // get the local rank
+    int local_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &local_rank);
+    
     // specify the lower and upper bounds
     std::vector<double> lb{-1, -1}, ub{1, 1};
     
@@ -32,13 +36,23 @@ int main(int argc, const char * argv[]) {
     swarm_.set_bounds(lb, ub);
     swarm_.set_mpi_comm(MPI_COMM_WORLD);
     swarm_.set_tag(5);
-    swarm_.set_msg_check_frequency(5);
+    swarm_.set_msg_check_frequency(100);
+    swarm_.set_print_flag(false);
     swarm_.initialize();
     
     // do particle swarm iterations
-    for(int i = 0; i < 100; ++i){
+    for(int i = 0; i < 100000; ++i){
         swarm_.iterate();
     }
+    
+    // print the result
+    printf("Rank(%i): fval^* = %0.5e\n", local_rank, swarm_.get_best_objective_value());
+    printf("Rank(%i): x^*    = [ ", local_rank);
+    auto& x = swarm_.get_best_position();
+    for(auto xv: x){
+        printf("%0.5e ", xv);
+    }
+    printf("]\n");
     
     // finalize
     MPI_Finalize();

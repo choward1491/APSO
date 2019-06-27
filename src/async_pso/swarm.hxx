@@ -24,7 +24,8 @@ namespace async {
         {
             comm = MPI_COMM_WORLD;
             MPI_Comm_rank(comm, &local_rank);
-            gen.seed(local_rank);
+            int seed_val = (local_rank*1749 << 4) ^ 17;
+            gen.seed(seed_val);
             set_tag(0);
             gcom.set_prng(gen);
         }
@@ -96,7 +97,7 @@ namespace async {
             }
             
             // send out message and receive results, if necessary
-            if( counter++ % frequency == 0 ){
+            if( ++counter % frequency == 0 ){
                 
                 // check for completeness
                 gcom.check_message_completeness(16);
@@ -109,11 +110,13 @@ namespace async {
                 }
                 
                 // print message
-                printf("Rank(%i): f_{best} = %0.5e @ [ ", local_rank, gcom.best_function_value());
-                for(size_t i = 0; i < global_best.size(); ++i){
-                    printf("%0.3e ", global_best[i]);
+                if( do_print ){
+                    printf("Rank(%i): f_{best} = %0.5e @ [ ", local_rank, gcom.best_function_value());
+                    for(size_t i = 0; i < global_best.size(); ++i){
+                        printf("%0.3e ", global_best[i]);
+                    }
+                    printf("]\n");
                 }
-                printf("]\n");
             }
         }
         
@@ -125,6 +128,13 @@ namespace async {
         // get the global communicator
         HEADER global_comm& CLASS::get_communicator() {
             return gcom;
+        }
+        
+        HEADER double CLASS::get_best_objective_value() const {
+            return gcom.best_function_value();
+        }
+        HEADER const std::vector<double>& CLASS::get_best_position() const {
+            return gcom.best_position();
         }
         
     }// end namespace pso

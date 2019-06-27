@@ -52,6 +52,11 @@ namespace async {
             // get the global communicator
             global_comm& get_communicator();
             
+            // methods to retrieve the optimal objective
+            // function and position for the swarm on this rank
+            double get_best_objective_value() const;
+            const std::vector<double>& get_best_position() const;
+            
         private:
             
             // the frequency at which we send/receive messages
@@ -72,7 +77,7 @@ namespace async {
             global_comm gcom;
             
             // random number generator
-            std::default_random_engine gen;
+            std::mt19937 gen;
             
             // MPI stuff
             int local_rank;

@@ -59,7 +59,7 @@ namespace async {
             }
         }
         
-        void global_comm::set_prng(std::default_random_engine& gen) {
+        void global_comm::set_prng(std::mt19937& gen) {
             eng = &gen;
         }
         
