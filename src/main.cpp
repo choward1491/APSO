@@ -15,7 +15,7 @@
 struct quadratic {
     double operator()(const std::vector<double>& x) const {
         double val = 0.0;
-        for(auto xx: x){ val += xx * xx; }
+        for(auto xx: x){ val += (xx-0.5) * (xx-0.5); }
         return val;
     }
 };
@@ -61,7 +61,7 @@ int main(int argc, const char * argv[]) {
     swarm_.set_bounds(lb, ub);
     swarm_.set_mpi_comm(MPI_COMM_WORLD);
     swarm_.set_tag(5);
-    swarm_.set_msg_check_frequency(max_iter);
+    swarm_.set_msg_check_frequency(max_iter/100);
     swarm_.set_print_flag(false);
     swarm_.initialize();
     
