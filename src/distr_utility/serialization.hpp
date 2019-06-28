@@ -9,6 +9,7 @@
 #ifndef serialization_h
 #define serialization_h
 
+#include <cstring>
 #include <cstdio>
 #include <vector>
 
