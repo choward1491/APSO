@@ -1,14 +1,13 @@
 # set the compiler
 CXX      := mpic++
-CXXFLAGS := -std=c++14 -O3 -Isrc/
-
-# specify the mpi lib
-mpi_lib := mpich-3.2
+CXXFLAGS := -std=c++11 -O3 -Isrc/
+LDFLAGS  := -L/usr/lib -L/usr/lib64 -L/usr/lib64/mpich/lib
+LIBS     := -lmpichcxx
 
 # set the main directories
 distr_util := src/distr_utility
 pso        := src/async_pso
-compare    :=src/compare_pso
+compare    := src/compare_pso
 
 # get the cpp and h/hpp/hxx files
 distr_cpp   := $(wildcard $(distr_util)/*.cpp)
@@ -30,10 +29,10 @@ APSO_Test := apso_test
 
 # try to compile some stuff
 test: $(obj1)
-	$(CXX) -o $(APSO_Test) $^
+	$(CXX) $(LDFLAGS) $(LIBS) -o $(APSO_Test) $^
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $<
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(obj1) $(obj2)
