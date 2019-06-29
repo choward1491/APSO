@@ -37,13 +37,13 @@ int main(int argc, const char * argv[]) {
     std::vector<double> lb{-1, -1}, ub{1, 1};
     
     // setup the swarm
-    int num_particles = 512, num_iterations = 1000000;
+    int num_particles = 4800, num_iterations = 4000000;
     //async::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
     sync::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
     swarm_.set_bounds(lb, ub);
     swarm_.set_mpi_comm(MPI_COMM_WORLD);
     swarm_.set_msg_check_frequency(1);
-    swarm_.set_print_flag(true);
+    swarm_.set_print_flag(false);
     swarm_.initialize();
     
     
