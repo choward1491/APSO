@@ -55,6 +55,7 @@ int main(int argc, const char * argv[]) {
     double t2 = MPI_Wtime();
     
     // print the result
+    if( local_rank == 0 ){
     printf("Rank(%i): Runtime is %0.5es\n", local_rank, t2 - t1);
     printf("Rank(%i): fval^* = %0.5e\n", local_rank, swarm_.get_best_objective_value());
     printf("Rank(%i): x^*    = [ ", local_rank);
@@ -63,6 +64,7 @@ int main(int argc, const char * argv[]) {
         printf("%0.5e ", xv);
     }
     printf("]\n");
+    }
     
     // finalize
     MPI_Finalize();

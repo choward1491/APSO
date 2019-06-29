@@ -12,7 +12,7 @@ particles  := src/particle
 
 # get the cpp and h/hpp/hxx files
 distr_cpp   := $(wildcard $(distr_util)/*.cpp)
-apso_cpp    := $(wildcard $(pso)/*.cpp)
+apso_cpp    := $(wildcard $(apso)/*.cpp)
 spso_cpp    := $(wildcard $(spso)/*.cpp)
 parts       := $(wildcard $(particles)/*.cpp)
 src1        := src/main.cpp $(distr_cpp) $(apso_cpp) $(spso_cpp) $(parts)
@@ -28,7 +28,7 @@ obj2 := $(patsubst %.cpp, %.o, $(src2))
 APSO_Test := apso_test
 
 # try to compile some stuff
-test: $(obj1) $(pso_h)
+test: $(obj1)
 	$(CXX) $(LDFLAGS) $(LIBS) -o $(APSO_Test) $^
 
 %.o: %.cpp
