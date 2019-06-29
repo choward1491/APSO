@@ -13,7 +13,7 @@
 #define CLASS swarm<func_type>
 
 #include <limits>
-#include "swarm.hpp"
+#include "sync_swarm.hpp"
 
 namespace sync {
     namespace pso {

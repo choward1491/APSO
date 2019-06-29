@@ -11,7 +11,6 @@
 
 #include <random>
 #include <vector>
-#include "global_communicator.hpp"
 #include "../particle/particle.hpp"
 
 namespace sync {
