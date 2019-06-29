@@ -38,7 +38,7 @@ namespace async {
         }
         
         void global_comm::set_mpi_comm(MPI_Comm com) {
-            distributed::msg_manager::set_mpi_comm(com);
+            distributed::msg_manager2::set_mpi_comm(com);
             
             // get local rank and number of processes
             MPI_Comm_rank(com, &local_rank);

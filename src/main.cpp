@@ -46,7 +46,9 @@ int main(int argc, const char * argv[]) {
     swarm_.set_print_flag(false);
     swarm_.initialize();
     
-    
+    if( local_rank == 0 ){
+        printf("Rank(%i): Starting the run\n", local_rank);
+    }
     double t1 = MPI_Wtime();
     // do particle swarm iterations
     for(int i = 0; i < num_iterations; ++i){
@@ -56,14 +58,14 @@ int main(int argc, const char * argv[]) {
     
     // print the result
     if( local_rank == 0 ){
-    printf("Rank(%i): Runtime is %0.5es\n", local_rank, t2 - t1);
-    printf("Rank(%i): fval^* = %0.5e\n", local_rank, swarm_.get_best_objective_value());
-    printf("Rank(%i): x^*    = [ ", local_rank);
-    auto& x = swarm_.get_best_position();
-    for(auto xv: x){
-        printf("%0.5e ", xv);
-    }
-    printf("]\n");
+        printf("Rank(%i): Runtime is %0.5es\n", local_rank, t2 - t1);
+        printf("Rank(%i): fval^* = %0.5e\n", local_rank, swarm_.get_best_objective_value());
+        printf("Rank(%i): x^*    = [ ", local_rank);
+        auto& x = swarm_.get_best_position();
+        for(auto xv: x){
+            printf("%0.5e ", xv);
+        }
+        printf("]\n");
     }
     
     // finalize
