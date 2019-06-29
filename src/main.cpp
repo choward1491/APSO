@@ -36,12 +36,12 @@ int main(int argc, const char * argv[]) {
     std::vector<double> lb{-1, -1}, ub{1, 1};
     
     // setup the swarm
-    int num_particles = 512, num_iterations = 1000000;
+    int num_particles = 4800, num_iterations = 4000000;
     async::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
     swarm_.set_bounds(lb, ub);
     swarm_.set_mpi_comm(MPI_COMM_WORLD);
     swarm_.set_tag(5);
-    swarm_.set_msg_check_frequency(num_iterations/100);
+    swarm_.set_msg_check_frequency(num_iterations*2); // /100
     swarm_.set_print_flag(false);
     swarm_.initialize();
     
@@ -54,6 +54,8 @@ int main(int argc, const char * argv[]) {
     double t2 = MPI_Wtime();
     
     // print the result
+    
+    if( local_rank == 0 ){
     printf("Rank(%i): Runtime is %0.5es\n", local_rank, t2 - t1);
     printf("Rank(%i): fval^* = %0.5e\n", local_rank, swarm_.get_best_objective_value());
     printf("Rank(%i): x^*    = [ ", local_rank);
@@ -62,6 +64,7 @@ int main(int argc, const char * argv[]) {
         printf("%0.5e ", xv);
     }
     printf("]\n");
+    }
     
     // finalize
     MPI_Finalize();
