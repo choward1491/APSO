@@ -28,7 +28,6 @@ namespace sync {
             // set the MPI communicator
             void set_print_flag(bool do_print);
             void set_mpi_comm(MPI_Comm com);
-            void set_tag(int tag);
             
             // set the bounds
             void set_bounds(const std::vector<double>& lb, const std::vector<double>& ub);
@@ -47,9 +46,6 @@ namespace sync {
             // get the function reference
             func_type& get_objective_func();
             
-            // get the global communicator
-            global_comm& get_communicator();
-            
             // methods to retrieve the optimal objective
             // function and position for the swarm on this rank
             double get_best_objective_value() const;
@@ -63,8 +59,13 @@ namespace sync {
             double w, phi_l, phi_g;
             
             // particles of the swarm
-            std::vector<particle>   particles;
-            particle                global_best;
+            std::vector<::pso::particle>    particles;
+            std::vector<double>             gbest_pos;
+            double                          gbest_fval;
+            
+            // specify buffers
+            std::vector<double> send_buf;
+            std::vector<double> recv_buf;
             
             // bounds for the domain
             std::vector<double> lb, ub;
@@ -76,7 +77,7 @@ namespace sync {
             std::mt19937 gen;
             
             // MPI stuff
-            int local_rank;
+            int local_rank, tot_ranks;
             MPI_Comm comm;
             
             

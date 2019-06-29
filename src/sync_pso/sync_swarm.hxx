@@ -12,6 +12,7 @@
 #define HEADER template<typename func_type>
 #define CLASS swarm<func_type>
 
+#include <limits>
 #include "swarm.hpp"
 
 namespace sync {
@@ -24,21 +25,17 @@ namespace sync {
         {
             comm = MPI_COMM_WORLD;
             MPI_Comm_rank(comm, &local_rank);
+            MPI_Comm_size(comm, &tot_ranks);
             int seed_val = (local_rank*1749 << 4) ^ 17;
             gen.seed(seed_val);
-            set_tag(0);
-            gcom.set_prng(gen);
+            gbest_fval = std::numeric_limits<double>::max();
         }
         
         HEADER void CLASS::set_mpi_comm(MPI_Comm com) {
             MPI_Comm_rank(com, &local_rank);
+            MPI_Comm_size(com, &tot_ranks);
             gen.seed(local_rank);
-            gcom.set_mpi_comm(com);
             comm = com;
-        }
-        
-        HEADER void CLASS::set_tag(int tag) {
-            gcom.set_manager_tag(tag);
         }
         
         HEADER void CLASS::set_print_flag(bool do_print_) {
@@ -48,6 +45,8 @@ namespace sync {
         // set the bounds
         HEADER void CLASS::set_bounds(const std::vector<double>& lb_, const std::vector<double>& ub_){
             lb = lb_; ub = ub_;
+            gbest_pos.resize(lb.size());
+            send_buf.resize(lb.size()+1);
         }
         
         HEADER void CLASS::set_momentum(double omega) {
@@ -73,6 +72,7 @@ namespace sync {
                 p.set_momentum(w);
                 p.set_particle_weights(phi_l, phi_g);
             }
+            recv_buf.resize( (dim+1) * tot_ranks );
         }
         
         // perform an iteration
@@ -84,33 +84,64 @@ namespace sync {
                 p.set_function_value(fval);
                 
                 // set values into the global estimate tracker
-                gcom.update_global_best_est(fval, p.get_current_position());
-            }
-            
-            // update the particles
-            const std::vector<double>& global_best = gcom.best_position();
-            for(auto& p: particles){
-                
-                // update the particle with the current
-                // global best estimate
-                p.update(global_best);
+                if( fval < gbest_fval ){
+                    auto& bsoln = p.get_best_position();
+                    for(size_t i = 0; i < bsoln.size(); ++i){
+                        gbest_pos[i] = bsoln[i];
+                    }
+                    gbest_fval = fval;
+                }
             }
             
             // send out message and receive results, if necessary
             if( ++counter % frequency == 0 ){
                 
-                // synchronize
-                gcom.check_message_completeness(16);
+                // get the number of data being used here
+                int num_data = static_cast<int>(lb.size()) + 1;
                 
+                // fill the send buffer
+                send_buf[0] = gbest_fval;
+                for(int i = 0; i < gbest_pos.size(); ++i){
+                    send_buf[i+1] = gbest_pos[i];
+                }
+                
+                // synchronize
+                MPI_Allgather(&send_buf[0], num_data, MPI_DOUBLE,
+                              &recv_buf[0], num_data, MPI_DOUBLE,
+                              comm);
+                
+                // update the optimal result
+                int opt_index = 0;
+                double bval = recv_buf[0];
+                for(int i = 1; i < tot_ranks; ++i){
+                    const double ival = recv_buf[i*num_data];
+                    if( ival < bval ){
+                        bval = ival;
+                        opt_index = i;
+                    }
+                }// for i
+                
+                gbest_fval = bval;
+                for(size_t i = 0; i < lb.size(); ++i){
+                    gbest_pos[i] = recv_buf[(i+1) + opt_index*num_data];
+                }
                 
                 // print message
                 if( do_print ){
-                    printf("Rank(%i): f_{best} = %0.5e @ [ ", local_rank, gcom.best_function_value());
-                    for(size_t i = 0; i < global_best.size(); ++i){
-                        printf("%0.3e ", global_best[i]);
+                    printf("Rank(%i): f_{best} = %0.5e @ [ ", local_rank, gbest_fval);
+                    for(size_t i = 0; i < gbest_pos.size(); ++i){
+                        printf("%0.3e ", gbest_pos[i]);
                     }
                     printf("]\n");
                 }
+            }
+            
+            // update the particles
+            for(auto& p: particles){
+                
+                // update the particle with the current
+                // global best estimate
+                p.update(gbest_pos);
             }
         }
         
@@ -119,16 +150,11 @@ namespace sync {
             return objective_func;
         }
         
-        // get the global communicator
-        HEADER global_comm& CLASS::get_communicator() {
-            return gcom;
-        }
-        
         HEADER double CLASS::get_best_objective_value() const {
-            return gcom.best_function_value();
+            return gbest_fval;
         }
         HEADER const std::vector<double>& CLASS::get_best_position() const {
-            return gcom.best_position();
+            return gbest_pos;
         }
         
     }// end namespace pso

@@ -9,6 +9,7 @@
 #include <mpi.h>
 #include <iostream>
 #include "async_pso/swarm.hpp"
+#include "sync_pso/sync_swarm.hpp"
 
 struct quadratic {
     double operator()(const std::vector<double>& x) const {
@@ -37,12 +38,12 @@ int main(int argc, const char * argv[]) {
     
     // setup the swarm
     int num_particles = 512, num_iterations = 1000000;
-    async::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
+    //async::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
+    sync::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
     swarm_.set_bounds(lb, ub);
     swarm_.set_mpi_comm(MPI_COMM_WORLD);
-    swarm_.set_tag(5);
-    swarm_.set_msg_check_frequency(num_iterations/100);
-    swarm_.set_print_flag(false);
+    swarm_.set_msg_check_frequency(1);
+    swarm_.set_print_flag(true);
     swarm_.initialize();
     
     

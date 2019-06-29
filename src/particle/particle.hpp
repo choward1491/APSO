@@ -12,54 +12,52 @@
 #include <random>
 #include <vector>
 
-namespace async {
-    namespace pso {
+namespace pso {
+    
+    class particle {
+    public:
         
-        class particle {
-        public:
-            
-            // ctor/dtor
-            particle(int dim = 0);
-            ~particle() = default;
-            
-            // set number of dims for particle
-            void set_num_dims(int dim);
-            void set_momentum(double omega);
-            void set_particle_weights(double phi_local, double phi_global);
-            
-            // initialize
-            void initialize(std::mt19937& gen,
-                            const std::vector<double>& lb,
-                            const std::vector<double>& ub);
-            
-            // update the particle state
-            void update(const std::vector<double>& global_best);
-            
-            // set the function value for the particle
-            void set_function_value(double fval);
-            
-            // get the current function value or state
-            double get_current_val() const;
-            const std::vector<double>& get_current_position();
-            
-            // get the current best states for this particle
-            double get_best_val() const;
-            const std::vector<double>& get_best_position() const;
-            
-        private:
-            double func_val, w, phi_l, phi_g;
-            std::vector<double> p;
-            std::vector<double> v;
-            const std::vector<double> *lb;
-            const std::vector<double> *ub;
-            std::mt19937* gen;
-            
-            double best_val;
-            std::vector<double> best_p;
-            
-        };
+        // ctor/dtor
+        particle(int dim = 0);
+        ~particle() = default;
         
-    }// end namespace pso
-}// end namespace async
+        // set number of dims for particle
+        void set_num_dims(int dim);
+        void set_momentum(double omega);
+        void set_particle_weights(double phi_local, double phi_global);
+        
+        // initialize
+        void initialize(std::mt19937& gen,
+                        const std::vector<double>& lb,
+                        const std::vector<double>& ub);
+        
+        // update the particle state
+        void update(const std::vector<double>& global_best);
+        
+        // set the function value for the particle
+        void set_function_value(double fval);
+        
+        // get the current function value or state
+        double get_current_val() const;
+        const std::vector<double>& get_current_position();
+        
+        // get the current best states for this particle
+        double get_best_val() const;
+        const std::vector<double>& get_best_position() const;
+        
+    private:
+        double func_val, w, phi_l, phi_g;
+        std::vector<double> p;
+        std::vector<double> v;
+        const std::vector<double> *lb;
+        const std::vector<double> *ub;
+        std::mt19937* gen;
+        
+        double best_val;
+        std::vector<double> best_p;
+        
+    };
+    
+}// end namespace pso
 
 #endif /* particle_hpp */

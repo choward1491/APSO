@@ -65,7 +65,7 @@ namespace async {
             double w, phi_l, phi_g;
             
             // particles of the swarm
-            std::vector<particle> particles;
+            std::vector<::pso::particle> particles;
             
             // bounds for the domain
             std::vector<double> lb, ub;
