@@ -6,19 +6,19 @@ LIBS     := -lmpichcxx
 
 # set the main directories
 distr_util := src/distr_utility
-pso        := src/async_pso
-compare    := src/compare_pso
+apso       := src/async_pso
+spso       := src/sync_pso
+particles  := src/particle
 
 # get the cpp and h/hpp/hxx files
 distr_cpp   := $(wildcard $(distr_util)/*.cpp)
-pso_cpp     := $(wildcard $(pso)/*.cpp)
-src1        := src/main.cpp $(distr_cpp) $(pso_cpp)
-compare_cpp := $(wildcard $(compare)/*.cpp)
-src2        := $(src1) $(compare_cpp)
+apso_cpp    := $(wildcard $(pso)/*.cpp)
+spso_cpp    := $(wildcard $(spso)/*.cpp)
+parts       := $(wildcard $(particles)/*.cpp)
+src1        := src/main.cpp $(distr_cpp) $(apso_cpp) $(spso_cpp) $(parts)
 distr_h     := $(wildcard $(distr_util)/*.h*)
-pso_h       := $(wildcard $(pso)/*.h*)
+pso_h       := $(wildcard $(apso)/*.h* $(spso)/*.h* $(particles)/*.h*)
 hdr1        := $(distr_h) $(pso_h)
-compare_h   := $(wildcard $(compare)/*.h*)
 
 # specify the object files
 obj1 := $(patsubst %.cpp, %.o, $(src1))
@@ -28,7 +28,7 @@ obj2 := $(patsubst %.cpp, %.o, $(src2))
 APSO_Test := apso_test
 
 # try to compile some stuff
-test: $(obj1)
+test: $(obj1) $(pso_h)
 	$(CXX) $(LDFLAGS) $(LIBS) -o $(APSO_Test) $^
 
 %.o: %.cpp
