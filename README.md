@@ -13,11 +13,19 @@
  This asynchronous PSO method was written recently (June 26th), so there has not been a lot of time to build out a lot of features. I would like to investigate some other topologies, perhaps even some other techniques for resolving particles that leave the hypercube search domain. I think it would be great to find a way to pass around particles if a given process is seeing it operates slower than some other process. I may consider
 
  # Sample Parallel Results
- The below figure is for a basic sample test problem that does 1000000 iterations with a fixed swarm size of 480 that gets distributed across 1, 2, 4, 8, 16, 32, and 48 processes, respectively. A speedup plot based on the strong scaling related data is shown below.
+ The below figure is for a set of test problems of increasing cost that get distributed across 1, 2, 4, 8, 16, 32, and 48 processes, respectively. All the problems tackle a simple quadratic form objective with different combinations of overall swarm size and number of iterations. The test problems are setup as:
+ 
+ - **P1**: 480 particles and 1000000 iterations
+ - **P2**: 4800 particles and 2000000 iterations
+ - **P3**: 4800 particles and 4000000 iterations
+ - **P4**: 9600 particles and 4000000 iterations
+ 
+ The speedup plot and strong scaling efficiency plot are shown below.
 
  ![Strong Scaling Speed-up](media/speedup.png)
+  ![Strong Scaling Efficiency](media/strongscale_eff.png)
 
- The above figure shows that indeed the algorithm appears to scale pretty well, though it is totally reasonable to expect there might be some work to do to improve the efficiency further.
+ The above figure shows that indeed the algorithm maintains a near ideal speed up and relatively good efficiency.
 
  # Contact Info
  Email: choward1491@gmail.com

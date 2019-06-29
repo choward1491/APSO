@@ -1,24 +1,22 @@
 //
-//  swarm.hpp
+//  sync_swarm.hpp
 //  async_pso
 //
-//  Created by Christian Howard on 6/26/19.
+//  Created by Christian Howard on 6/28/19.
 //  Copyright © 2019 Christian Howard. All rights reserved.
 //
 
-#ifndef swarm_hpp
-#define swarm_hpp
+#ifndef sync_swarm_hpp
+#define sync_swarm_hpp
 
-#include <mpi.h>
 #include <random>
 #include <vector>
 #include "global_communicator.hpp"
 #include "../particle/particle.hpp"
 
-
-namespace async {
+namespace sync {
     namespace pso {
-    
+        
         template<typename func_type>
         class swarm {
         public:
@@ -65,16 +63,14 @@ namespace async {
             double w, phi_l, phi_g;
             
             // particles of the swarm
-            std::vector<particle> particles;
+            std::vector<particle>   particles;
+            particle                global_best;
             
             // bounds for the domain
             std::vector<double> lb, ub;
             
             // objective function
             func_type objective_func;
-            
-            // global communicator
-            global_comm gcom;
             
             // random number generator
             std::mt19937 gen;
@@ -85,10 +81,10 @@ namespace async {
             
             
         };
-    
+        
     }// end namespace pso
-}// end namespace async
+}// end namespace sync
 
-#include "swarm.hxx"
+#include "sync_swarm.hxx"
 
-#endif /* swarm_hpp */
+#endif /* sync_swarm_h */
