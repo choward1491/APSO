@@ -11,16 +11,19 @@
 
 #include <vector>
 #include <random>
-#include "../distr_utility/message_manager2.hpp"
+#include "../distr_utility/message_manager.hpp"
+#include "../distr_utility/message_manager3.hpp"
 
 namespace async {
     namespace pso {
+        
+        using msg_manager = distributed::msg_manager3;
         
         /*
          Class for managing data messages from one
          swarm partition to another
          */
-        class global_comm : public distributed::msg_manager2 {
+        class global_comm : public msg_manager {
         public:
             
             // ctor/dtor
@@ -79,7 +82,7 @@ namespace async {
             // type aliases
             using byte_t = distributed::byte_t;
             using uniq_msg_handle = util::unique_handle<distributed::message>;
-            using metadata_t = distributed::msg_manager2::metadata_t;
+            using metadata_t = msg_manager::metadata_t;
             
             // overloaded response handler
             void response_handler(byte_t* buf, metadata_t metadata, int src_rank);

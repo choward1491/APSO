@@ -55,6 +55,10 @@ namespace distributed {
         ID = ID_;
         return *this;
     }
+    message& message::set_pool_id(size_t ID_) {
+        pool_id = ID_;
+        return *this;
+    }
     message& message::set_msg_type(int mtype) {
         message_type = mtype;
         return *this;
@@ -69,6 +73,9 @@ namespace distributed {
     }
     int message::get_dest_rank() const {
         return dest_rank;
+    }
+    size_t message::get_pool_id() const {
+        return pool_id;
     }
     
     // error code stuff

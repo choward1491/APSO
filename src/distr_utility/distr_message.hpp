@@ -36,12 +36,14 @@ namespace distributed {
         message& set_process_rank();
         message& set_destination_rank(int dest_rank);
         message& set_message_id(size_t ID);
+        message& set_pool_id(size_t ID);
         message& set_msg_type(int mtype);
         message& set_msg_tag(int tag);
         
         // getter methods
         int get_type() const;
         int get_dest_rank() const;
+        size_t get_pool_id() const;
         
         // get mpi request
         MPI_Request& get_mpi_request();
@@ -86,7 +88,7 @@ namespace distributed {
         
         // internal state
         int                 tag, my_rank, dest_rank, error_code;
-        size_t              task_id, ID;
+        size_t              task_id, ID, pool_id;
         int                 message_type;
         std::vector<byte_t> send_data;
         size_t              send_data_size;

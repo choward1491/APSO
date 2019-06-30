@@ -1,92 +1,100 @@
 //
-//  message_manager.cpp
-//  distributed_hybrid_meshing
+//  message_manager3.cpp
+//  async_pso
 //
-//  Created by Christian Howard on 6/23/19.
-//  Copyright © 2019. All rights reserved.
+//  Created by Christian Howard on 6/29/19.
+//  Copyright © 2019 Christian Howard. All rights reserved.
 //
 
-#include "message_manager.hpp"
+#include "message_manager3.hpp"
 
 namespace distributed {
     
-    msg_manager::msg_manager():num_complete(0),tag(101),manager_id(0){
+    msg_manager3::msg_manager3():num_complete(0),tag(101),manager_id(0){
         comm = MPI_COMM_WORLD;
         MPI_Comm_rank(comm, &local_rank);
+        temp_buffer.resize(1028);
+        messages.reserve(128);
     }
     // method to set the ID for this manager
-    void msg_manager::set_id(size_t ID) {
+    void msg_manager3::set_id(size_t ID) {
         manager_id = ID;
     }
-    size_t msg_manager::get_id() const {
+    size_t msg_manager3::get_id() const {
         return manager_id;
     }
     
     // methods to work with the messages
-    util::raw_handle<message> msg_manager::get_message_at(size_t message_id) {
+    util::raw_handle<message> msg_manager3::get_message_at(size_t message_id) {
         return messages[message_id];
     }
-    int msg_manager::get_message_type_at(size_t message_id) const {
+    int msg_manager3::get_message_type_at(size_t message_id) const {
         return messages[message_id]->get_type();
     }
     
-    bool msg_manager::is_message_complete(size_t message_id) const {
+    bool msg_manager3::is_message_complete(size_t message_id) const {
         return messages[message_id]->did_get_response();
     }
     
-    size_t msg_manager::create_message() {
+    size_t msg_manager3::create_message() {
         size_t size_ = messages.size();
-        messages.emplace_back();
-        messages[size_].free();
-        messages[size_].create();
+        size_t id = msg_pool.get_free_id();
+        raw_msg_t msg_ = msg_pool[id];
         
         // initialize the message with the known details
-        util::raw_handle<message> msg_ = messages[size_];
         msg_->set_communicator(comm)
         .set_msg_tag(tag)
         .set_message_id(size_)
+        .set_pool_id(id)
         .set_process_rank();
+        messages.push_back(msg_);
         
         return size_;
     }
     
-    typename msg_manager::uniq_msg_t msg_manager::create_indep_message() {
+    typename msg_manager3::raw_msg_t msg_manager3::create_indep_message() {
         
-        uniq_msg_t msg_;
-        msg_.create();
+        size_t id = msg_pool.get_free_id();
+        raw_msg_t msg_ = msg_pool[id];
+        
         msg_->set_communicator(comm)
         .set_msg_tag(tag)
         .set_message_id(0)
+        .set_pool_id(id)
         .set_process_rank();
         
         return msg_;
     }
     
-    void msg_manager::add_msg_to_response_queue(uniq_msg_t msg) {
+    void msg_manager3::add_msg_to_response_queue(raw_msg_t msg) {
         response_q.push(msg);
     }
     
-    size_t msg_manager::num_messages() const {
+    size_t msg_manager3::num_messages() const {
         return messages.size();
     }
-    bool msg_manager::all_messages_complete() const {
+    bool msg_manager3::all_messages_complete() const {
         return num_complete == messages.size();
     }
-    void msg_manager::clear_messages() {
+    void msg_manager3::clear_messages() {
         for(size_t i = 0; i < messages.size(); ++i){
-            messages[i].free();
+            auto msg = messages[i];
+            msg->reset_buffer(message::Send);
+            msg->reset_buffer(message::Receive);
+            msg_pool.erase(msg->get_pool_id());
+            messages[i] = nullptr;
         }
         messages.resize(0);
         num_complete = 0;
     }
     
     // methods for checking progress
-    void msg_manager::check_message_completeness(int num2process) {
+    void msg_manager3::check_message_completeness(int num2process) {
         
         int flag = 0;
         size_t qsize = response_q.size();
         for(size_t i = 0; i < qsize; ++i){
-            uniq_msg_t msg = response_q.front(); response_q.pop();
+            raw_msg_t msg = response_q.front(); response_q.pop();
             
             // test to see if the request is complete
             MPI_Test(&msg->get_mpi_request(),
@@ -96,7 +104,10 @@ namespace distributed {
             // if test shows the request is not complete,
             // then push the msg back onto the queue
             if( !flag ){ response_q.push(msg); }
-            else{ msg.free(); }
+            else{
+                msg->reset_buffer();
+                msg_pool.erase(msg->get_pool_id());
+            }
         }// end loop over your response queue
         
         for(int i = 0; i < num2process; ++i){
@@ -113,7 +124,9 @@ namespace distributed {
                               &incoming_data_size);
                 
                 // allocate the buffer, if needed
-                temp_buffer.resize(incoming_data_size);
+                if( temp_buffer.size() < incoming_data_size ){
+                    temp_buffer.resize(incoming_data_size);
+                }
                 
                 // perform the receive call
                 int err = MPI_Recv(&temp_buffer[0],
@@ -161,25 +174,25 @@ namespace distributed {
         }// end for i
     }
     
-    void msg_manager::increment_number_complete_msgs() {
+    void msg_manager3::increment_number_complete_msgs() {
         ++num_complete;
     }
     
     // set/get the tag for this class
-    void msg_manager::set_manager_tag(int tag_) {
+    void msg_manager3::set_manager_tag(int tag_) {
         tag = tag_;
     }
-    int msg_manager::get_manager_tag() const {
+    int msg_manager3::get_manager_tag() const {
         return tag;
     }
     
     // set communicator
-    void msg_manager::set_mpi_comm(MPI_Comm com) {
+    void msg_manager3::set_mpi_comm(MPI_Comm com) {
         comm = com;
         MPI_Comm_rank(comm, &local_rank);
     }
     
-    typename msg_manager::probe_t msg_manager::perform_nonblock_probe() const {
+    typename msg_manager3::probe_t msg_manager3::perform_nonblock_probe() const {
         
         // init vars
         int flag;

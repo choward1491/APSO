@@ -109,6 +109,7 @@ namespace async {
                     gcom.send_global_best_est();
                 }
                 
+                
                 // print message
                 if( do_print ){
                     printf("Rank(%i): f_{best} = %0.5e @ [ ", local_rank, gcom.best_function_value());

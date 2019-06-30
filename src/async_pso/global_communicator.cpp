@@ -38,7 +38,7 @@ namespace async {
         }
         
         void global_comm::set_mpi_comm(MPI_Comm com) {
-            distributed::msg_manager2::set_mpi_comm(com);
+            msg_manager::set_mpi_comm(com);
             
             // get local rank and number of processes
             MPI_Comm_rank(com, &local_rank);
@@ -134,7 +134,7 @@ namespace async {
         void global_comm::response_handler(byte_t* buf, metadata_t metadata, int src_rank) {
             
             // create a new message
-            uniq_msg_t msg_ = create_indep_message();
+            auto msg_ = create_indep_message();
             msg_->set_destination_rank(src_rank);
             
             // set metadata as a response
