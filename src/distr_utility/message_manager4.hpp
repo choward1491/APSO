@@ -74,12 +74,14 @@ namespace distributed {
         using raw_arecv_t = util::raw_handle<async_recv>;
         using uniq_msg_t = util::unique_handle<message>;
         using raw_msg_t  = util::raw_handle<message>;
+        
+        // main protected variables
         int tag, local_rank;
         size_t manager_id, num_complete;
         MPI_Comm comm;
         std::vector<raw_msg_t> messages;
-        std::vector<byte_t> temp_buffer, mpi_buf;
         
+        // protected methods
         void increment_number_complete_msgs();
         raw_msg_t create_indep_message();
         void add_msg_to_response_queue(raw_msg_t msg);

@@ -13,10 +13,7 @@ namespace distributed {
     msg_manager4::msg_manager4():num_complete(0),tag(101),manager_id(0){
         comm = MPI_COMM_WORLD;
         MPI_Comm_rank(comm, &local_rank);
-        temp_buffer.resize(1028);
         messages.reserve(128);
-        mpi_buf.resize(1028*10);
-        MPI_Buffer_attach(mpi_buf.data(), static_cast<int>(mpi_buf.size()));
     }
     msg_manager4::~msg_manager4(){
     }
