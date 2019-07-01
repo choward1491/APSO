@@ -158,7 +158,7 @@ namespace distributed {
             MPI_Test(&arecv->req, &flag, MPI_STATUS_IGNORE);
             if( flag ){
                 process_recv(*arecv);
-                msg_pool.erase(arecv->pool_id);
+                recv_pool.erase(arecv->pool_id);
             }else{ recv_q.push(arecv); }
         }
     }
@@ -198,17 +198,9 @@ namespace distributed {
     
     // methods for checking progress
     void msg_manager4::check_message_completeness(int num2process) {
-        
-        //printf("Rank(%i): check_responses_complete\n", local_rank);
         check_responses_complete();
-        
-        //printf("Rank(%i): probe_for_responses\n", local_rank);
         probe_for_responses(num2process);
-        
-        //printf("Rank(%i): check_get_async_responses\n", local_rank);
         check_get_async_responses();
-        
-        //printf("Rank(%i): complete message checks\n", local_rank);
     }
     
     void msg_manager4::increment_number_complete_msgs() {
