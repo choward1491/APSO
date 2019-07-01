@@ -12,12 +12,14 @@
 #include <vector>
 #include <random>
 #include "../distr_utility/message_manager.hpp"
+#include "../distr_utility/message_manager2.hpp"
 #include "../distr_utility/message_manager3.hpp"
+#include "../distr_utility/message_manager4.hpp"
 
 namespace async {
     namespace pso {
         
-        using msg_manager = distributed::msg_manager3;
+        using msg_manager = distributed::msg_manager4;
         
         /*
          Class for managing data messages from one

@@ -99,6 +99,10 @@ namespace distributed {
             else{ msg.free(); }
         }// end loop over your response queue
         
+        // test for the send messages
+        
+        
+        // check if we have received any messages
         for(int i = 0; i < num2process; ++i){
             auto probe_ = perform_nonblock_probe();
             

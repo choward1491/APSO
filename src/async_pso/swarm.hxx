@@ -100,12 +100,19 @@ namespace async {
             if( ++counter % frequency == 0 ){
                 
                 // check for completeness
+                //printf("Rank(%i): gcom.check_message_completeness\n", local_rank);
                 gcom.check_message_completeness(16);
                 if( gcom.num_messages() ){
+                    
+                    //printf("Rank(%i): gcom.all_messages_complete\n", local_rank);
                     if( gcom.all_messages_complete() ){
+                        
+                        //printf("Rank(%i): gcom.load_responses_update_estimate\n", local_rank);
                         gcom.load_responses_update_estimate();
                     }
                 }else{
+                    
+                    //printf("Rank(%i): gcom.send_global_best_est\n", local_rank);
                     gcom.send_global_best_est();
                 }
                 

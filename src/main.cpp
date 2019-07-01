@@ -10,11 +10,18 @@
 #include <iostream>
 #include "async_pso/swarm.hpp"
 #include "sync_pso/sync_swarm.hpp"
+#include <chrono>
+#include <thread>
+
 
 struct quadratic {
     double operator()(const std::vector<double>& x) const {
         double val = 0.0;
-        for(auto xx: x){ val += xx * xx; }
+        for(auto xx: x){
+            val += xx * xx;
+        }
+        std::chrono::milliseconds time(1);
+        std::this_thread::sleep_for(time);
         return val;
     }
 };
@@ -33,13 +40,70 @@ int main(int argc, const char * argv[]) {
     int tot_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &tot_ranks);
     
+    /*
+    double val = 0.0;
+    double value = 3.1415, value2 = 0.0;
+    int N = 50;
+    MPI_Request reqs[50];
+    int flags[50];
+    bool complete = false;
+    
+    double t1 = MPI_Wtime();
+    if( local_rank == 0 ){
+        for(int i = 0; i < 10000000; ++i){
+            if( i < N ){
+                MPI_Isend(&value, 1, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, reqs + i);
+            }else{
+                MPI_Test(reqs + (i % 50), flags + (i % 50), MPI_STATUS_IGNORE);
+            }
+            val += i * 2.9;
+        }
+    }
+    
+    if( local_rank == 1 ){
+        
+        for(int i = 0; i < 10000000; ++i){
+            if( i < N ){
+                MPI_Irecv(&value2, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, reqs + i);
+            }else{
+                MPI_Test(reqs + (i % 50), flags + (i % 50), MPI_STATUS_IGNORE);
+            }
+            val += i * 2.9;
+        }
+    }
+    
+    MPI_Waitall(N, reqs, MPI_STATUSES_IGNORE);
+    double t2 = MPI_Wtime();
+    printf("Rank(%i): Runtime for chunk 1 is %lf\n", local_rank, t2 - t1);
+    
+    double t3 = MPI_Wtime();
+    if( local_rank == 0 ){
+        for(int i = 0; i < N; ++i){
+            MPI_Send(&value, 1, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD);
+        }
+    }
+    
+    if( local_rank == 1 ){
+        for(int i = 0; i < N; ++i){
+            MPI_Recv(&value2, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
+    }
+    
+    double val2 = 0.0;
+    for(int i = 0; i < 10000000; ++i){
+        val2 += i * 2.9;
+    }
+    double t4 = MPI_Wtime();
+    printf("Rank(%i): Runtime for chunk 2 is %lf\n", local_rank, t4 - t3);
+    */
+    
     
     // specify the lower and upper bounds
     std::vector<double> lb{-1, -1}, ub{1, 1};
     
     // setup the swarm
     //int num_particles = 4800, num_iterations = 4000000;
-    int num_particles = 48, num_iterations = 4000000 * 10;
+    int num_particles = 100, num_iterations = 40;
     async::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
     //sync::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
     swarm_.set_bounds(lb, ub);
@@ -69,13 +133,13 @@ int main(int argc, const char * argv[]) {
         }
         printf("]\n");
     }
-     
+    
     
     /*
     int dest_rank = (local_rank+1)%tot_ranks, val = 10, tmp = 0;
     MPI_Status stat;
     
-#if 0
+#if 1
     distributed::message msg;
     
     double t1 = MPI_Wtime();
@@ -153,7 +217,7 @@ int main(int argc, const char * argv[]) {
         
         if( msg->get_mpi_request() != MPI_REQUEST_NULL ){
             MPI_Test(&msg->get_mpi_request(), &flag, MPI_STATUS_IGNORE);
-            //msg1.free();
+            msg1.free();
         }
         
         MPI_Iprobe(dest_rank, 0, MPI_COMM_WORLD, &flag, &stat);
@@ -168,9 +232,10 @@ int main(int argc, const char * argv[]) {
             counter++;
             
             // create message and write a response
-            //msg1.create();
+            msg1.create();
+            msg = msg1.raw_ptr();
             msg->reset_buffer();
-            msg1->set_msg_tag(0)
+            msg->set_msg_tag(0)
             .set_msg_type(0)
             .set_message_id(0)
             .set_communicator(MPI_COMM_WORLD)
@@ -189,6 +254,7 @@ int main(int argc, const char * argv[]) {
     
 #endif
     */
+    
     // finalize
     MPI_Finalize();
     return 0;

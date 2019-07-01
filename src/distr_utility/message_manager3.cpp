@@ -15,6 +15,10 @@ namespace distributed {
         MPI_Comm_rank(comm, &local_rank);
         temp_buffer.resize(1028);
         messages.reserve(128);
+        mpi_buf.resize(1028*10);
+        MPI_Buffer_attach(mpi_buf.data(), static_cast<int>(mpi_buf.size()));
+    }
+    msg_manager3::~msg_manager3(){
     }
     // method to set the ID for this manager
     void msg_manager3::set_id(size_t ID) {

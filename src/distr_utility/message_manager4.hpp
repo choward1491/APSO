@@ -1,13 +1,13 @@
 //
-//  message_manager3.hpp
+//  message_manager4.hpp
 //  async_pso
 //
-//  Created by Christian Howard on 6/29/19.
+//  Created by Christian Howard on 7/1/19.
 //  Copyright © 2019 Christian Howard. All rights reserved.
 //
 
-#ifndef message_manager3_hpp
-#define message_manager3_hpp
+#ifndef message_manager4_hpp
+#define message_manager4_hpp
 
 #include <vector>
 #include <queue>
@@ -18,7 +18,7 @@
 
 namespace distributed {
     
-    class msg_manager3 {
+    class msg_manager4 {
     public:
         
         // define useful metadata type
@@ -29,8 +29,8 @@ namespace distributed {
         };
         
         // ctor/dtor
-        msg_manager3();
-        virtual ~msg_manager3();
+        msg_manager4();
+        virtual ~msg_manager4();
         
         // method to set the ID for this manager
         void set_id(size_t ID);
@@ -56,13 +56,6 @@ namespace distributed {
         void check_message_completeness(int num2process = 128);
         
     protected:
-        using uniq_msg_t = util::unique_handle<message>;
-        using raw_msg_t  = util::raw_handle<message>;
-        int tag, local_rank;
-        size_t manager_id, num_complete;
-        MPI_Comm comm;
-        std::vector<raw_msg_t> messages;
-        std::vector<byte_t> temp_buffer, mpi_buf;
         
         // define the probe struct
         struct probe_t {
@@ -71,6 +64,22 @@ namespace distributed {
             bool flag;
         };
         
+        struct async_recv {
+            size_t pool_id;
+            std::vector<byte_t> buf;
+            MPI_Request req;
+            int src_rank;
+        };
+        using uniq_arecv_t = util::unique_handle<async_recv>;
+        using raw_arecv_t = util::raw_handle<async_recv>;
+        using uniq_msg_t = util::unique_handle<message>;
+        using raw_msg_t  = util::raw_handle<message>;
+        int tag, local_rank;
+        size_t manager_id, num_complete;
+        MPI_Comm comm;
+        std::vector<raw_msg_t> messages;
+        std::vector<byte_t> temp_buffer, mpi_buf;
+        
         void increment_number_complete_msgs();
         raw_msg_t create_indep_message();
         void add_msg_to_response_queue(raw_msg_t msg);
@@ -78,11 +87,17 @@ namespace distributed {
     private:
         
         // queue to store response messages
-        util::pool_vector<message>  msg_pool;
-        std::queue<raw_msg_t>       response_q;
+        util::pool_vector<async_recv>   recv_pool;
+        util::pool_vector<message>      msg_pool;
+        std::queue<raw_msg_t>           response_q;
+        std::queue<raw_arecv_t>         recv_q;
         
         // perform nonblocking probe
         probe_t perform_nonblock_probe() const;
+        void check_responses_complete();
+        void probe_for_responses(int num2process);
+        void check_get_async_responses();
+        void process_recv(async_recv& arecv);
         
         // define virtual method for handling responses
         virtual void response_handler(byte_t* buf, metadata_t metadata, int src_rank) = 0;
@@ -91,5 +106,4 @@ namespace distributed {
     
 }
 
-
-#endif /* message_manager3_hpp */
+#endif /* message_manager4_hpp */
