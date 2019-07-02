@@ -8,23 +8,11 @@
 
 #include <mpi.h>
 #include <iostream>
-#include "async_pso/swarm.hpp"
-#include "sync_pso/sync_swarm.hpp"
 #include <chrono>
 #include <thread>
-
-
-struct quadratic {
-    double operator()(const std::vector<double>& x) const {
-        double val = 0.0;
-        for(auto xx: x){
-            val += xx * xx;
-        }
-        std::chrono::milliseconds time(1);
-        std::this_thread::sleep_for(time);
-        return val;
-    }
-};
+#include "async_pso/swarm.hpp"
+#include "sync_pso/sync_swarm.hpp"
+#include "objectives/test_problems.hpp"
 
 
 int main(int argc, const char * argv[]) {
@@ -99,41 +87,77 @@ int main(int argc, const char * argv[]) {
     
     
     // specify the lower and upper bounds
-    std::vector<double> lb{-1, -1}, ub{1, 1};
+    std::vector<double> lb{-10, -10}, ub{10, 10};
     
     // setup the swarm
     //int num_particles = 4800, num_iterations = 4000000;
-    int num_particles = 100, num_iterations = 40;
-    async::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
-    //sync::pso::swarm<quadratic> swarm_( num_particles / tot_ranks );
-    swarm_.set_bounds(lb, ub);
-    swarm_.set_mpi_comm(MPI_COMM_WORLD);
-    swarm_.set_msg_check_frequency(1);
-    swarm_.set_print_flag(false);
-    swarm_.initialize();
+    int num_particles = 48*3, num_iterations = 100;
     
-    if( local_rank == 0 ){
-        printf("Rank(%i): Starting the run\n", local_rank);
-    }
-    double t1 = MPI_Wtime();
-    // do particle swarm iterations
-    for(int i = 0; i < num_iterations; ++i){
-        swarm_.iterate();
-    }
-    double t2 = MPI_Wtime();
-    
-    // print the result
-    if( local_rank == 0 ){
-        printf("Rank(%i): Runtime is %0.5es\n", local_rank, t2 - t1);
-        printf("Rank(%i): fval^* = %0.5e\n", local_rank, swarm_.get_best_objective_value());
-        printf("Rank(%i): x^*    = [ ", local_rank);
-        auto& x = swarm_.get_best_position();
-        for(auto xv: x){
-            printf("%0.5e ", xv);
+    {   // start test async swarm
+        async::pso::swarm<test::levyfunc_n13> swarm_async( num_particles / tot_ranks );
+        
+        // test the async first
+        test::gen.seed(17);
+        swarm_async.set_bounds(lb, ub);
+        swarm_async.set_mpi_comm(MPI_COMM_WORLD);
+        swarm_async.set_msg_check_frequency(1);
+        swarm_async.set_print_flag(false);
+        swarm_async.initialize();
+        
+        if( local_rank == 0 ){
+            printf("Rank(%i): Starting the run\n", local_rank);
         }
-        printf("]\n");
-    }
+        double t1 = MPI_Wtime();
+        // do particle swarm iterations
+        for(int i = 0; i < num_iterations; ++i){
+            swarm_async.iterate();
+        }
+        double t2 = MPI_Wtime();
+        
+        // print the result
+        if( local_rank == 0 ){
+            printf("Rank(%i): Runtime is %0.5es\n", local_rank, t2 - t1);
+            printf("Rank(%i): fval^* = %0.5e\n", local_rank, swarm_async.get_best_objective_value());
+            printf("Rank(%i): x^*    = [ ", local_rank);
+            auto& x = swarm_async.get_best_position();
+            for(auto xv: x){
+                printf("%0.5e ", xv);
+            }
+            printf("]\n");
+        }
+    }   // end test async swarm
     
+    {   // test the sync swarm
+        sync::pso::swarm<test::levyfunc_n13> swarm_sync( num_particles / tot_ranks );
+        test::gen.seed(17);
+        swarm_sync.set_bounds(lb, ub);
+        swarm_sync.set_mpi_comm(MPI_COMM_WORLD);
+        swarm_sync.set_msg_check_frequency(1);
+        swarm_sync.set_print_flag(false);
+        swarm_sync.initialize();
+        
+        if( local_rank == 0 ){
+            printf("Rank(%i): Starting the run\n", local_rank);
+        }
+        double t1 = MPI_Wtime();
+        // do particle swarm iterations
+        for(int i = 0; i < num_iterations; ++i){
+            swarm_sync.iterate();
+        }
+        double t2 = MPI_Wtime();
+        
+        // print the result
+        if( local_rank == 0 ){
+            printf("Rank(%i): Runtime is %0.5es\n", local_rank, t2 - t1);
+            printf("Rank(%i): fval^* = %0.5e\n", local_rank, swarm_sync.get_best_objective_value());
+            printf("Rank(%i): x^*    = [ ", local_rank);
+            auto& x = swarm_sync.get_best_position();
+            for(auto xv: x){
+                printf("%0.5e ", xv);
+            }
+            printf("]\n");
+        }
+    }   // end test sync swarm
     
     /*
     int dest_rank = (local_rank+1)%tot_ranks, val = 10, tmp = 0;
