@@ -2,7 +2,8 @@
 CXX      := mpic++
 CXXFLAGS := -std=c++11 -O3 -Isrc/
 LDFLAGS  := -L/usr/lib -L/usr/lib64 -L/usr/lib64/mpich/lib
-LIBS     := -lmpichcxx
+#LIBS     := -lmpichcxx
+LIBS	 := -lmpi -lboost# this is for HAL
 
 # set the main directories
 distr_util := src/distr_utility

@@ -95,7 +95,7 @@ namespace util {
         void free();
         
     private:
-        std::unique_ptr<T> ref;
+        mutable std::unique_ptr<T> ref;
         
     };
     

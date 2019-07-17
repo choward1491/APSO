@@ -28,6 +28,7 @@ namespace async {
             gen.seed(seed_val);
             set_tag(0);
             gcom.set_prng(gen);
+	    //printf("My rank is %i\n", local_rank);
         }
         
         HEADER void CLASS::set_mpi_comm(MPI_Comm com) {
@@ -67,6 +68,7 @@ namespace async {
         HEADER void CLASS::initialize() {
             counter = 0;
             size_t dim = lb.size();
+	    int idx = 0;
             for(auto&p: particles){
                 p.set_num_dims(dim);
                 p.initialize( gen, lb, ub );
@@ -77,12 +79,12 @@ namespace async {
         
         // perform an iteration
         HEADER void CLASS::iterate() {
-            
+
             // compute the values of the particles
             for(auto& p: particles){
                 double fval = objective_func(p.get_current_position());
                 p.set_function_value(fval);
-                
+
                 // set values into the global estimate tracker
                 gcom.update_global_best_est(fval, p.get_current_position());
             }

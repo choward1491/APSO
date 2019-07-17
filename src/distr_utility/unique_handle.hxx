@@ -28,8 +28,7 @@ namespace util {
     
     HEADER CLASS::unique_handle(const unique_handle & h):ref(nullptr) {
         if( !h.is_null() ){
-            ref.reset( new T() );
-            *ref.get() = *h;
+            ref = std::move(h.ref);
         }
     }
     

@@ -64,7 +64,8 @@ namespace async {
         }
         
         void global_comm::update_global_best_est(double func_val, const std::vector<double>& position) {
-            if( func_val < best_fval ){
+            
+	    if( func_val < best_fval ){
                 best_fval = func_val;
                 best_pos.resize(position.size());
                 for(size_t i = 0; i < position.size(); ++i){
